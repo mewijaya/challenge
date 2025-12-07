@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  nestjs_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nestjs
+    restart: always
+    ports:
+      - '3000:3000'
+    environment:
+      DATABASE_HOST: mysql_db
+      DATABASE_PORT: 3306
+      DATABASE_USER: ${MYSQL_USER}
+      DATABASE_PASSWORD: ${MYSQL_PASSWORD}
+      DATABASE_NAME: ${MYSQL_DATABASE}
+      JWT_SECRET: ${JWT_SECRET}
+      NODE_ENV: production
+
+    depends_on:
+      mysql_db:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
+    networks:
+      - nestjs_network
+
+  mysql_db:
+    image: mysql:8.0
+    container_name: mysql_db_container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - nestjs_network
+
+volumes:
+  mysql_data:
+
+networks:
+  nestjs_network:
+    driver: bridge
